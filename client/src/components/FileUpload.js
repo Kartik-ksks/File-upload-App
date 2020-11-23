@@ -1,6 +1,7 @@
 import React, { Fragment, useState } from 'react';
 import Message from './Message';
 import Progress from './Progress';
+import Threescene from './Threescene';
 import axios from 'axios';
 
 const FileUpload = () => {
@@ -79,7 +80,8 @@ const FileUpload = () => {
         <div className='row mt-5'>
           <div className='col-md-6 m-auto'>
             <h3 className='text-center'>{uploadedFile.fileName}</h3>
-            <img style={{ width: '100%' }} src={uploadedFile.filePath} alt='' />
+    //        <img style={{ width: '100%' }} src={uploadedFile.filePath} alt='' />
+          <Threescene asset="uploadedfile.filePath"/>
           </div>
         </div>
       ) : null}
