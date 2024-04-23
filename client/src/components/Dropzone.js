@@ -1,104 +1,54 @@
-import React, { Component } from 'react'
-import './Dropzone.css'
-import axios from 'axios'
+import React, { useState } from 'react';
+import axios from 'axios';
 
+const FileUploader = ({setUploadedFile}) => {
+  const [file, setFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-class Dropzone extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { hightlight: false }
-    this.fileInputRef = React.createRef()
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const droppedFile = event.dataTransfer.files[0];
+    setFile(droppedFile);
+  };
 
-    this.openFileDialog = this.openFileDialog.bind(this)
-    this.onFilesAdded = this.onFilesAdded.bind(this)
-    this.onDragOver = this.onDragOver.bind(this)
-    this.onDragLeave = this.onDragLeave.bind(this)
-    this.onDrop = this.onDrop.bind(this)
-  }
+  const handleUpload = async () => {
+    const formData = new FormData();
+    formData.append('file', file);
 
-  openFileDialog() {
-    if (this.props.disabled) return
-    this.fileInputRef.current.click()
-  }
-
-  onFilesAdded(evt) {
-    if (this.props.disabled) return
-    const files = evt.target.files
-    if (this.props.onFilesAdded) {
-      const array = this.fileListToArray(files)
-      this.props.onFilesAdded(array)
-    }
-  }
-
-  onDragOver(evt) {
-    evt.preventDefault()
-
-    if (this.props.disabled) return
-
-    this.setState({ hightlight: true })
-  }
-
-
-  onDragLeave() {
-    this.setState({ hightlight: false })
-  }
-
-
-  onDrop(event) {
-    event.preventDefault()
-
-    if (this.props.disabled) return
-
-    const files = event.dataTransfer.files
-
-    if (this.props.onFilesAdded) {
-      const formData = new FormData();
-
-      formData.append('file', files);
-
-        const res = axios.post('/upload', formData, {
-
-          headers: {
-
-            'Content-Type': 'multipart/form-data'
-
-          },
+    try {
+      const response = await axios.post('http://localhost:5000/upload', formData, {
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+          setUploadProgress(progress);
+        }
       });
-      const array = this.fileListToArray(files)
-      this.props.onFilesAdded(array)
+      const { fileName, filePath } = response.data;
 
+      setUploadedFile({ fileName, filePath });
+      console.log('File uploaded successfully:', response.data);
+    } catch (error) {
+      console.error('Error uploading file:', error);
     }
-    this.setState({ hightlight: false })
-  }
+  };
 
-  fileListToArray(list) {
-    const array = []
-    for (var i = 0; i < list.length; i++) {
-      array.push(list.item(i))
-    }
-    return array
-  }
-
-  render() {
-    return (
-
+  return (
+    <div>
       <div
-        className={`Dropzone ${this.state.hightlight ? 'Highlight' : ''}`}
-        onDragOver={this.onDragOver}
-        onDragLeave={this.onDragLeave}
-        onDrop={this.onDrop}
-        onClick={this.openFileDialog}
-        style={{ cursor: this.props.disabled ? 'default' : 'pointer' }}
+        onDrop={handleDrop}
+        onDragOver={(event) => event.preventDefault()}
+        style={{ border: '1px dashed #ccc', padding: '20px', marginBottom: '20px' }}
       >
-        <input
-          ref={this.fileInputRef}  className="FileInput"  type="file"  multiple
-          onChange={this.onFilesAdded}  />
-
-        <span>Upload Files</span>
-                <h1  > Drop here</h1>
+        <p>Drag and drop a file here, or click to select a file.</p>
+        {file && (
+          <div>
+            <p>Selected file: {file.name}</p>
+            <button onClick={handleUpload}>Upload</button>
+          </div>
+        )}
       </div>
-    )
-  }
-}
+      {uploadProgress > 0 && <p>Upload Progress: {uploadProgress}%</p>}
+    </div>
+  );
+};
 
-export default Dropzone
+export default FileUploader;

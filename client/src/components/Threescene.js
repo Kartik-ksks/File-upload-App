@@ -1,7 +1,5 @@
 import React, { Component } from "react";
 import * as THREE from "three";
-import { OBJLoader } from "three-obj-mtl-loader";
-import ObjectModel from 'react-three-renderer-objects';
 import OrbitControls from "three-orbitcontrols";
 
 
